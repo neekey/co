@@ -15,14 +15,21 @@ module.exports = co;
  * Wrap the given generator `fn` and
  * return a thunk.
  *
- * @param {Function} fn
+ * @param {Function} fn 只接收 generator 或者 generatorFunction
  * @return {Function}
  * @api public
  */
 
 function co(fn) {
+  
+  // 检查是否为genenratorFunction
   var isGenFun = isGeneratorFunction(fn);
 
+  /**
+   * co 执行后返回一个function，这个function根据你给定的是generator 还是 generatorFunction
+   * 可以传入的参数不一样。如果是generator，直接给到done就可以了，如果是generatorFunction，由于
+   * generatorFunction执行生成generator可能需要参数，因此可以添加需要的参数，最后一个参数（如果为函数）会被作为回掉使用。
+   */
   return function (done) {
     var ctx = this;
 
@@ -42,6 +49,7 @@ function co(fn) {
       done = done || error;
     }
 
+    // 开始进行流程 
     next();
 
     // #92
@@ -55,6 +63,8 @@ function co(fn) {
       var ret;
 
       // multiple args
+      // 若存在超过2个的参数，则整合第一个以后的参数作为数组赋值给res
+      // 如: next( null, 1, 2, 3 ) --> 最后的 res = [ 1, 2, 3 ];
       if (arguments.length > 2) res = slice.call(arguments, 1);
 
       // error
